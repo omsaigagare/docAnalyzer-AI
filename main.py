@@ -228,7 +228,7 @@ def query_document(request: QueryRequest) -> dict[str, str]:
 
     try:
         model = ChatGoogleGenerativeAI(
-            model=os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
+            model=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
             vertexai=False,
         )
         response = model.invoke(

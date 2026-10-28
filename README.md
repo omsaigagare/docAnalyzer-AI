@@ -30,5 +30,5 @@ Keep API keys in Render's environment settings or a local ignored `.env` file; d
 
 - Upload accepts selectable-text PDFs and reports when OCR is needed.
 - Each successful upload replaces the current in-memory document.
-- Search uses Cohere embeddings and answers use Gemini 2.5 Flash. The model receives retrieved PDF excerpts as reference text and is instructed not to treat excerpt text as instructions.
+- Search uses Cohere embeddings and answers use Gemini 2.0 Flash. The model receives retrieved PDF excerpts as reference text and is instructed not to treat excerpt text as instructions.
 - The one-worker start command is required because the in-memory vector store is process-local.
