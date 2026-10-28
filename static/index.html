@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0d14">
+  <title>DocAnalyzer AI</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090c12;
+      --panel: rgba(17, 23, 34, .88);
+      --panel-raised: #151d2a;
+      --line: rgba(177, 195, 222, .13);
+      --text: #edf2fa;
+      --muted: #99a7bb;
+      --accent: #94f0d2;
+      --accent-strong: #58d7b1;
+      --danger: #ffb3b3;
+      --shadow: 0 28px 90px rgba(0, 0, 0, .35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 15% 0%, rgba(48, 117, 118, .21), transparent 35rem),
+        radial-gradient(ellipse at 92% 18%, rgba(73, 81, 145, .20), transparent 32rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input { font: inherit; }
+    .shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 32px 0 48px; }
+    header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 42px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: -.03em; }
+    .brand-mark {
+      display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid rgba(148,240,210,.35);
+      border-radius: 13px; color: var(--accent); background: rgba(148,240,210,.08); box-shadow: 0 0 30px rgba(88,215,177,.08);
+    }
+    .brand-name { font-size: 15px; }
+    .top-note { color: var(--muted); font-size: 12px; letter-spacing: .09em; text-transform: uppercase; }
+    .hero { max-width: 700px; margin-bottom: 28px; }
+    .eyebrow { margin: 0 0 14px; color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+    h1 { max-width: 680px; margin: 0; font-size: clamp(38px, 6vw, 66px); font-weight: 620; letter-spacing: -.065em; line-height: 1.02; }
+    .hero-copy { max-width: 520px; margin: 17px 0 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
+    .layout { display: grid; grid-template-columns: 310px minmax(0, 1fr); align-items: stretch; gap: 17px; }
+    .card { overflow: hidden; border: 1px solid var(--line); border-radius: 22px; background: var(--panel); box-shadow: var(--shadow); backdrop-filter: blur(16px); }
+    .upload-card { padding: 22px; }
+    .section-kicker { margin: 0 0 7px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+    h2 { margin: 0; font-size: 18px; font-weight: 620; letter-spacing: -.03em; }
+    .dropzone { display: flex; min-height: 178px; margin: 22px 0 15px; padding: 20px 14px; align-items: center; justify-content: center; flex-direction: column; border: 1px dashed rgba(148,240,210,.32); border-radius: 16px; background: rgba(148,240,210,.035); text-align: center; cursor: pointer; transition: background .2s, border-color .2s; }
+    .dropzone:hover, .dropzone:focus-within { border-color: var(--accent); background: rgba(148,240,210,.07); }
+    .file-icon { display: grid; width: 43px; height: 43px; margin-bottom: 12px; place-items: center; border: 1px solid var(--line); border-radius: 14px; color: var(--accent); background: var(--panel-raised); }
+    .drop-title { max-width: 220px; overflow: hidden; color: var(--text); font-size: 13px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .drop-subtitle { margin-top: 6px; color: var(--muted); font-size: 11px; }
+    #pdfInput { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+    .button { display: inline-flex; width: 100%; min-height: 44px; align-items: center; justify-content: center; gap: 9px; border: 0; border-radius: 12px; color: #07120f; background: var(--accent); font-size: 13px; font-weight: 750; cursor: pointer; transition: transform .16s, background .16s, opacity .16s; }
+    .button:hover:not(:disabled) { transform: translateY(-1px); background: #b2f7e4; }
+    .button:disabled { opacity: .5; cursor: wait; }
+    .button.secondary { color: var(--text); background: var(--panel-raised); border: 1px solid var(--line); }
+    .button.secondary:hover:not(:disabled) { background: #1c2938; }
+    .status { min-height: 36px; margin: 14px 2px 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .status.error { color: var(--danger); }
+    .privacy-note { display: flex; gap: 9px; margin-top: 20px; padding-top: 17px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .privacy-note svg { flex: 0 0 auto; margin-top: 1px; color: var(--accent); }
+    .chat-card { display: flex; min-height: 560px; flex-direction: column; }
+    .chat-head { display: flex; align-items: center; justify-content: space-between; padding: 21px 23px; border-bottom: 1px solid var(--line); }
+    .chat-head h2 { font-size: 15px; }
+    .ready { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 11px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #687589; }
+    .dot.active { background: var(--accent-strong); box-shadow: 0 0 12px rgba(88,215,177,.65); }
+    .chat-window { display: flex; flex: 1; min-height: 0; padding: 22px; overflow-y: auto; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
+    .welcome { display: grid; min-height: 100%; flex: 1; place-content: center; justify-items: center; padding: 25px; color: var(--muted); text-align: center; }
+    .welcome-mark { display: grid; width: 55px; height: 55px; margin-bottom: 17px; place-items: center; border: 1px solid var(--line); border-radius: 18px; color: var(--accent); background: var(--panel-raised); }
+    .welcome strong { margin-bottom: 7px; color: var(--text); font-size: 15px; font-weight: 600; }
+    .welcome span { max-width: 270px; font-size: 12px; line-height: 1.6; }
+    .message { max-width: min(85%, 560px); padding: 13px 15px; border: 1px solid var(--line); border-radius: 15px; color: var(--text); font-size: 13px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .message.user { align-self: flex-end; border-color: rgba(148,240,210,.18); border-bottom-right-radius: 5px; background: rgba(88,215,177,.10); }
+    .message.assistant { align-self: flex-start; border-bottom-left-radius: 5px; background: var(--panel-raised); }
+    .message.error { border-color: rgba(255,179,179,.24); color: var(--danger); background: rgba(255,100,100,.06); }
+    .composer { display: flex; gap: 10px; padding: 16px; border-top: 1px solid var(--line); }
+    .question-input { min-width: 0; flex: 1; height: 46px; padding: 0 15px; border: 1px solid var(--line); border-radius: 12px; outline: none; color: var(--text); background: #0e141e; font-size: 13px; }
+    .question-input::placeholder { color: #718096; }
+    .question-input:focus { border-color: rgba(148,240,210,.55); box-shadow: 0 0 0 3px rgba(148,240,210,.08); }
+    .send-button { width: 48px; min-width: 48px; height: 46px; min-height: 46px; border-radius: 12px; }
+    .send-button svg { transform: translateX(1px); }
+    .footnote { margin: 15px 4px 0; color: #768397; font-size: 10px; text-align: center; }
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 28px, 560px); padding-top: 20px; }
+      header { margin-bottom: 33px; }
+      .top-note { display: none; }
+      .hero { margin-bottom: 22px; }
+      .hero-copy { font-size: 14px; }
+      .layout { grid-template-columns: 1fr; }
+      .upload-card { padding: 19px; }
+      .dropzone { min-height: 140px; }
+      .chat-card { min-height: 500px; }
+      .chat-window { padding: 17px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand" aria-label="DocAnalyzer AI">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7 3.75h7l4.25 4.5v12H7a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.6"/><path d="M14 4v5h4M8.5 13h7M8.5 16.5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="brand-name">DocAnalyzer <span style="color:var(--accent)">AI</span></span>
+      </div>
+      <span class="top-note">Private document workspace</span>
+    </header>
+
+    <section class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Your document, understood</p>
+      <h1 id="page-title">Ask better questions of your PDFs.</h1>
+      <p class="hero-copy">Upload a document and get clear, grounded answers from the information inside it.</p>
+    </section>
+
+    <section class="layout" aria-label="Document analysis">
+      <aside class="card upload-card" aria-labelledby="upload-heading">
+        <p class="section-kicker">Step 01</p>
+        <h2 id="upload-heading">Add a document</h2>
+        <form id="uploadForm">
+          <label class="dropzone" for="pdfInput">
+            <span class="file-icon" aria-hidden="true">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="drop-title" id="fileName">Choose a PDF to get started</span>
+            <span class="drop-subtitle">PDF files only</span>
+            <input id="pdfInput" type="file" accept=".pdf,application/pdf" aria-label="Choose a PDF file">
+          </label>
+          <button class="button" id="uploadButton" type="submit">Upload PDF</button>
+          <p class="status" id="uploadStatus" role="status" aria-live="polite"></p>
+        </form>
+        <div class="privacy-note">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 5 6v5c0 4.4 2.8 8.3 7 10 4.2-1.7 7-5.6 7-10V6l-7-3Z" stroke="currentColor" stroke-width="1.6"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Your PDF is processed for this session. Uploading another replaces the current document.</span>
+        </div>
+      </aside>
+
+      <section class="card chat-card" aria-labelledby="chat-heading">
+        <div class="chat-head">
+          <div><p class="section-kicker">Step 02</p><h2 id="chat-heading">Ask your document</h2></div>
+          <span class="ready"><span class="dot" id="statusDot"></span><span id="chatStatus">Waiting for a PDF</span></span>
+        </div>
+        <div class="chat-window" id="chatWindow" role="log" aria-live="polite" aria-relevant="additions text">
+          <div class="welcome" id="welcomeState">
+            <span class="welcome-mark" aria-hidden="true"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><path d="M7.5 18.5 4 20l1.5-3.5A8.5 8.5 0 1 1 7.5 18.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 10h8M8 13.5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+            <strong>Your conversation starts here</strong>
+            <span>Upload a PDF, then ask a question about its content.</span>
+          </div>
+        </div>
+        <form class="composer" id="queryForm">
+          <input class="question-input" id="questionInput" type="text" maxlength="2000" placeholder="Ask something about your PDF…" autocomplete="off" aria-label="Question about your PDF">
+          <button class="button send-button" id="sendButton" type="submit" aria-label="Send question" title="Send question">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 3-7.2 18-3.7-7.1L3 10.2 21 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10.1 13.9 15 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+        </form>
+      </section>
+    </section>
+    <p class="footnote">Answers are generated from the uploaded document and may need your review.</p>
+  </main>
+
+  <script>
+    const uploadForm = document.getElementById('uploadForm');
+    const queryForm = document.getElementById('queryForm');
+    const pdfInput = document.getElementById('pdfInput');
+    const fileName = document.getElementById('fileName');
+    const uploadButton = document.getElementById('uploadButton');
+    const sendButton = document.getElementById('sendButton');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const chatWindow = document.getElementById('chatWindow');
+    const questionInput = document.getElementById('questionInput');
+    const welcomeState = document.getElementById('welcomeState');
+    const chatStatus = document.getElementById('chatStatus');
+    const statusDot = document.getElementById('statusDot');
+    let pendingRequests = 0;
+
+    function updatePendingRequests(change) {
+      pendingRequests = Math.max(0, pendingRequests + change);
+      uploadButton.disabled = pendingRequests > 0;
+      sendButton.disabled = pendingRequests > 0;
+    }
+
+    pdfInput.addEventListener('change', () => {
+      fileName.textContent = pdfInput.files && pdfInput.files[0]
+        ? pdfInput.files[0].name
+        : 'Choose a PDF to get started';
+      uploadStatus.textContent = '';
+      uploadStatus.classList.remove('error');
+    });
+
+    function addMessage(text, kind = 'assistant') {
+      if (welcomeState.isConnected) welcomeState.remove();
+      const message = document.createElement('div');
+      message.className = `message ${kind}`;
+      message.textContent = text;
+      chatWindow.appendChild(message);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      return message;
+    }
+
+    async function errorMessage(response) {
+      try {
+        const body = await response.json();
+        if (typeof body.detail === 'string') return body.detail;
+        if (typeof body.message === 'string') return body.message;
+      } catch (_) {
+        // The server may return a non-JSON error page.
+      }
+      return `Request failed (${response.status}). Please try again.`;
+    }
+
+    uploadForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const file = pdfInput.files && pdfInput.files[0];
+      if (!file) {
+        uploadStatus.textContent = 'Choose a PDF file first.';
+        uploadStatus.classList.add('error');
+        return;
+      }
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        uploadStatus.textContent = 'Please choose a PDF file.';
+        uploadStatus.classList.add('error');
+        return;
+      }
+
+      const data = new FormData();
+      data.append('file', file);
+      updatePendingRequests(1);
+      uploadButton.textContent = 'Uploading…';
+      uploadStatus.textContent = 'Reading and indexing your PDF…';
+      uploadStatus.classList.remove('error');
+
+      try {
+        const response = await fetch('/upload', { method: 'POST', body: data });
+        if (!response.ok) throw new Error(await errorMessage(response));
+        const result = await response.json();
+        uploadStatus.textContent = `Ready — ${result.chunks_created} text chunk${result.chunks_created === 1 ? '' : 's'} indexed.`;
+        chatStatus.textContent = 'Document ready';
+        statusDot.classList.add('active');
+        addMessage(`I've indexed “${file.name}”. What would you like to know?`, 'assistant');
+      } catch (error) {
+        const message = error && typeof error.message === 'string' ? error.message : 'Upload failed. Please try again.';
+        uploadStatus.textContent = message;
+        uploadStatus.classList.add('error');
+        chatStatus.textContent = 'Upload failed';
+        addMessage(message, 'error');
+      } finally {
+        updatePendingRequests(-1);
+        uploadButton.textContent = 'Upload PDF';
+      }
+    });
+
+    queryForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const question = questionInput.value.trim();
+      if (!question) return;
+
+      addMessage(question, 'user');
+      questionInput.value = '';
+      updatePendingRequests(1);
+      questionInput.disabled = true;
+      sendButton.setAttribute('aria-busy', 'true');
+      chatStatus.textContent = 'Thinking…';
+      const loadingMessage = addMessage('Looking through your document…', 'assistant');
+
+      try {
+        const response = await fetch('/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question })
+        });
+        if (!response.ok) throw new Error(await errorMessage(response));
+        const result = await response.json();
+        loadingMessage.textContent = typeof result.answer === 'string' ? result.answer : 'No answer was returned.';
+        chatStatus.textContent = 'Document ready';
+      } catch (error) {
+        const message = error && typeof error.message === 'string' ? error.message : 'Could not get an answer. Please try again.';
+        loadingMessage.textContent = message;
+        loadingMessage.classList.add('error');
+        chatStatus.textContent = 'Something went wrong';
+      } finally {
+        updatePendingRequests(-1);
+        questionInput.disabled = false;
+        sendButton.removeAttribute('aria-busy');
+        questionInput.focus();
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+      }
+    });
+  </script>
+</body>
+</html>
