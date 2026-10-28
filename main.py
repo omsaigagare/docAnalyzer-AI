@@ -112,6 +112,17 @@ def model_text(content: Any) -> str:
     return str(content).strip()
 
 
+def safe_exception_message(exc: Exception) -> str:
+    """Expose useful provider diagnostics without echoing configured secrets."""
+    message = str(exc).strip() or type(exc).__name__
+    for name in ("GOOGLE_API_KEY", "COHERE_API_KEY"):
+        secret = os.getenv(name)
+        if secret:
+            message = message.replace(secret, "[redacted]")
+    message = " ".join(message.split())
+    return message[:600]
+
+
 @app.get("/", response_class=FileResponse)
 def home() -> FileResponse:
     return FileResponse(str(STATIC_DIR / "index.html"))
@@ -217,8 +228,7 @@ def query_document(request: QueryRequest) -> dict[str, str]:
 
     try:
         model = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
-            temperature=0,
+            model=os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
             vertexai=False,
         )
         response = model.invoke(
@@ -226,10 +236,14 @@ def query_document(request: QueryRequest) -> dict[str, str]:
         )
         answer = model_text(response.content)
     except Exception as exc:
-        logger.exception("Google Gemini request failed")
+        diagnostic = safe_exception_message(exc)
+        logger.error("Google Gemini request failed (%s): %s", type(exc).__name__, diagnostic)
         raise HTTPException(
             status_code=502,
-            detail="The answer could not be generated. Check the Google AI service and try again.",
+            detail=(
+                "Google Gemini request failed. Check the Google API key, model access, "
+                f"and quota. Provider detail: {diagnostic}"
+            ),
         ) from exc
 
     return {"question": question, "answer": answer, "context": context}
